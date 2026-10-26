@@ -727,6 +727,9 @@ public class FurnitureTable extends JTable implements View, Printable {
    * Prints this component to make it fill <code>pageFormat</code> imageable size.
    */
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) throws PrinterException {
+    return print(g, pageFormat, pageIndex, false);
+  }
+  public int print(Graphics g, PageFormat pageFormat, int pageIndex, boolean includeLevel) throws PrinterException {
     // Create a printable column model from the column model of this table 
     // with printable renderers for each column
     DefaultTableColumnModel printableColumnModel = new DefaultTableColumnModel();
@@ -750,8 +753,28 @@ public class FurnitureTable extends JTable implements View, Printable {
           return headerRendererLabel;
         }
       };
-    for (int columnIndex = 0, n = columnModel.getColumnCount(); columnIndex < n; columnIndex++) {
-      final TableColumn tableColumn = columnModel.getColumn(columnIndex);
+    List<TableColumn> columnsToPrint = new ArrayList<TableColumn>();
+
+    boolean levelVisible = false;
+
+    for (int i = 0; i < columnModel.getColumnCount(); i++) {
+      TableColumn column = columnModel.getColumn(i);
+      columnsToPrint.add(column);
+      if (HomePieceOfFurniture.SortableProperty.LEVEL.equals(column.getIdentifier())) {
+        levelVisible = true;
+      }
+    }
+
+    if (includeLevel && !levelVisible) {
+      FurnitureTableColumnModel furnitureColumnModel = (FurnitureTableColumnModel)columnModel;
+      TableColumn levelColumn = furnitureColumnModel.availableColumns.get(HomePieceOfFurniture.SortableProperty.LEVEL);
+
+      if (levelColumn != null) {
+        columnsToPrint.add(levelColumn);
+      }
+    }
+    for (TableColumn currentColumn : columnsToPrint) {
+      final TableColumn tableColumn = currentColumn;
       // Create a printable column from existing table column
       TableColumn printableColumn = new TableColumn();
       printableColumn.setIdentifier(tableColumn.getIdentifier());
@@ -764,7 +787,7 @@ public class FurnitureTable extends JTable implements View, Printable {
             Component rendererComponent = cellRenderer.getTableCellRendererComponent(table, value, 
                 isSelected, hasFocus, row, column);
             if (rendererComponent instanceof JCheckBox) {
-              // Prefer a x sign for boolean values instead of check boxes
+              // Prefer an x sign for boolean values instead of check boxes
               rendererComponent = defaultRenderer.getTableCellRendererComponent(table, 
                   ((JCheckBox)rendererComponent).isSelected() ? "x" : "", false, false, row, column);
             }

@@ -2008,7 +2008,81 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    * that makes it fill <code>pageFormat</code> imageable size if this attribute is <code>null</code>.
    */
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
-    List<Selectable> printedItems = getPaintedItems(); 
+
+    if (pageIndex < 0) {
+      return NO_SUCH_PAGE;
+    }
+
+    if (this.home.getLevels().isEmpty()) {
+      return printSelectedLevel(g, pageFormat, pageIndex);
+    }
+
+    Level originalLevel = this.home.getSelectedLevel();
+
+    try {
+      int pageOffset = 0;
+
+      for (Level level : this.home.getLevels()) {
+
+        if (!level.isViewable()) {
+          continue;
+        }
+
+        this.home.setSelectedLevel(level);
+
+        int levelPageCount = getSelectedLevelPageCount(g, pageFormat);
+
+        if (pageIndex < pageOffset + levelPageCount) {
+
+          int localPageIndex = pageIndex - pageOffset;
+
+          return printSelectedLevel(g, pageFormat, localPageIndex);
+        }
+
+        pageOffset += levelPageCount;
+      }
+
+      return NO_SUCH_PAGE;
+    } finally {
+      this.home.setSelectedLevel(originalLevel);
+    }
+  }
+
+  private List<Selectable> getSelectedLevelPrintedItems() {
+    List<Selectable> items = new ArrayList<Selectable>();
+
+    for (Selectable item : getPaintedItems()) {
+      if (!(item instanceof Elevatable) || isViewableAtSelectedLevel((Elevatable)item)) {
+        items.add(item);
+      }
+    }
+    return items;
+  }
+
+  private int getSelectedLevelPageCount(Graphics g, PageFormat pageFormat) {
+    List<Selectable> items = getSelectedLevelPrintedItems();
+    Rectangle2D bounds = getItemsBounds(g, items);
+
+    if (bounds == null) {
+      return 0;
+    }
+
+    if (this.home.getPrint() == null || this.home.getPrint().getPlanScale() == null) {
+      return 1;
+    }
+
+    double scale = this.home.getPrint().getPlanScale() * LengthUnit.centimeterToInch(72);
+
+    int columns = Math.max(1, (int)Math.ceil(bounds.getWidth() * scale / pageFormat.getImageableWidth()));
+
+    int rows = Math.max(1, (int)Math.ceil(bounds.getHeight() * scale / pageFormat.getImageableHeight()));
+
+    return rows * columns;
+  }
+
+
+  private int printSelectedLevel(Graphics g, PageFormat pageFormat, int pageIndex) {
+    List<Selectable> printedItems = getSelectedLevelPrintedItems();
     Rectangle2D printedItemBounds = getItemsBounds(g, printedItems);
     if (printedItemBounds != null) {
       double imageableX = pageFormat.getImageableX();
