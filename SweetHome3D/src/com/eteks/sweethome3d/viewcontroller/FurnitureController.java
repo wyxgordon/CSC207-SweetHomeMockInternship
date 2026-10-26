@@ -532,6 +532,7 @@ public class FurnitureController implements Controller {
               HomePieceOfFurniture.SortableProperty.WIDTH,
               HomePieceOfFurniture.SortableProperty.DEPTH,
               HomePieceOfFurniture.SortableProperty.HEIGHT,
+              HomePieceOfFurniture.SortableProperty.VOLUME,
               HomePieceOfFurniture.SortableProperty.X,
               HomePieceOfFurniture.SortableProperty.Y,
               HomePieceOfFurniture.SortableProperty.ELEVATION,
@@ -545,7 +546,7 @@ public class FurnitureController implements Controller {
               HomePieceOfFurniture.SortableProperty.PRICE,
               HomePieceOfFurniture.SortableProperty.VALUE_ADDED_TAX_PERCENTAGE,
               HomePieceOfFurniture.SortableProperty.VALUE_ADDED_TAX,
-              HomePieceOfFurniture.SortableProperty.PRICE_VALUE_ADDED_TAX_INCLUDED}); 
+              HomePieceOfFurniture.SortableProperty.PRICE_VALUE_ADDED_TAX_INCLUDED});
       int propertyIndex = propertiesOrder.indexOf(furnitureProperty) - 1;
       if (propertyIndex > 0) {      
         while (propertyIndex > 0) {
